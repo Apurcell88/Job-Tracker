@@ -4,7 +4,7 @@ import { PrismaClient } from "@/generated/prisma";
 const prisma = new PrismaClient();
 
 // GET: Fetch all applications
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const applications = await prisma.application.findMany({
       include: {
