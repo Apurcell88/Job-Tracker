@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 type Tag = {
   id: string;
@@ -19,6 +20,7 @@ type Application = {
 const DashboardPage = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user, isSignedIn } = useUser();
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -36,12 +38,15 @@ const DashboardPage = () => {
     fetchApplications();
   }, []);
 
+  if (!isSignedIn) return <div>Loading...</div>;
+
   return (
     <div className="max-w-4xl mx-auto -4">
       <h1 className="text-3xl font-bold mb-4 text-center">
         Job Tracker Dashboard
       </h1>
-
+      <h2>Welcome, {user.firstName}</h2>
+      <p>Your email is: {user.emailAddresses[0].emailAddress}</p>
       {loading ? (
         <p>loading...</p>
       ) : applications.length === 0 ? (

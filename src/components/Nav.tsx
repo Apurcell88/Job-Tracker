@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth, SignOutButton } from "@clerk/nextjs";
 
 const links = [
   { href: "/", label: "Home" },
@@ -10,12 +11,12 @@ const links = [
   { href: "/about", label: "About" },
   { href: "/features", label: "Features" },
   { href: "/resources", label: "Resources" },
-  { href: "/login", label: "Login / Signup" },
 ];
 
 const Nav = () => {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { isSignedIn } = useAuth();
 
   return (
     <nav className="bg-white shadow-md fixed w-full top-0 left-0 z-50">
@@ -24,7 +25,7 @@ const Nav = () => {
         <div className="text-2xl font-bold text-indigo-600">JobTrail</div>
 
         {/* Desktop Links */}
-        <div className="hidden md:flex space-x-8">
+        <div className="hidden md:flex space-x-8 items-center">
           {links.map(({ href, label }) => (
             <Link
               key={href}
@@ -38,6 +39,22 @@ const Nav = () => {
               {label}
             </Link>
           ))}
+
+          {/* Sign In / Out Button */}
+          {isSignedIn ? (
+            <SignOutButton>
+              <button className="text-sm font-medium text-red-500 hover:underline">
+                Sign Out
+              </button>
+            </SignOutButton>
+          ) : (
+            <Link
+              href="/sign-in"
+              className="text-sm font-medium text-gray-700 hover:text-indigo-600"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -87,6 +104,26 @@ const Nav = () => {
               {label}
             </Link>
           ))}
+
+          {/* Mobile Sign In / Out Button */}
+          {isSignedIn ? (
+            <SignOutButton>
+              <button
+                onClick={() => setOpen(false)}
+                className="text-left text-lg font-medium text-red-500"
+              >
+                Sign Out
+              </button>
+            </SignOutButton>
+          ) : (
+            <Link
+              href="/sign-in"
+              onClick={() => setOpen(false)}
+              className="block font-medium text-lg text-gray-700 hover:text-indigo-600"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       </div>
     </nav>
