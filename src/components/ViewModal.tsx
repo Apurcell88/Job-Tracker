@@ -1,0 +1,46 @@
+import { format } from "date-fns";
+import { Status } from "@/generated/prisma";
+
+type ApplicationCard = {
+  id: string;
+  company: string;
+  position: string;
+  status: Status;
+  appliedDate: string;
+};
+
+type Props = {
+  application: ApplicationCard;
+  onClose: () => void;
+};
+
+const ViewModal = ({ application, onClose }: Props) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md relative">
+        <h2 className="text-lg font-semibold mb-4">Application Details</h2>
+        <p>
+          <strong>Company:</strong> {application.company}
+        </p>
+        <p>
+          <strong>Position:</strong> {application.position}
+        </p>
+        <p>
+          <strong>Status:</strong> {application.status}
+        </p>
+        <p>
+          <strong>Applied Date:</strong>{" "}
+          {format(new Date(application.appliedDate), "MMM d, yyyy")}
+        </p>
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-3 text-gray-600 hover:text-gray-900"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ViewModal;

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Application, Status } from "@/generated/prisma";
+import { Status } from "@/generated/prisma";
 import { format } from "date-fns";
+import ViewModal from "./ViewModal";
 
 type ApplicationCard = {
   id: string;
@@ -12,8 +13,11 @@ type ApplicationCard = {
   appliedDate: string;
 };
 
+// Modal component
+
 const DashboardApplications = () => {
   const [applications, setApplications] = useState<ApplicationCard[]>([]);
+  const [selectedApp, setSelectedApp] = useState<ApplicationCard | null>(null);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -24,6 +28,33 @@ const DashboardApplications = () => {
 
     fetchApplications();
   }, []);
+
+  const handleEdit = (app: ApplicationCard) => {};
+
+  const handleDelete = async (id: string) => {
+    const confirmDelete = confirm(
+      "Are you sure you want to delete this application?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`/app/api/applications/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setApplications((prev) => prev.filter((app) => app.id !== id));
+      } else {
+        console.error("Failed to delete application");
+      }
+    } catch (err) {
+      console.error("Error deleting application:", err);
+    }
+  };
+
+  const handleView = (app: ApplicationCard) => {
+    setSelectedApp(app);
+  };
 
   return (
     <div className="bg-white rounded-xl shadow p-6 mt-6">
@@ -48,9 +79,24 @@ const DashboardApplications = () => {
                 <td className="py-2 pr-4">
                   {format(new Date(app.appliedDate), "MMM d, yyyy")}
                 </td>
-                <td className="py-2">
-                  <button className="text-indigo-600 hover:underline text-sm">
+                <td className="py-2 space-x-3">
+                  <button
+                    className="text-blue-600 hover:underline text-sm"
+                    onClick={() => handleView(app)}
+                  >
+                    View
+                  </button>
+                  <button
+                    className="text-indigo-600 hover:underline text-sm"
+                    onClick={() => handleEdit(app)}
+                  >
                     Edit
+                  </button>
+                  <button
+                    className="text-red-600 hover:underline text-sm"
+                    onClick={() => handleDelete(app.id)}
+                  >
+                    Delete
                   </button>
                 </td>
               </tr>
@@ -65,6 +111,13 @@ const DashboardApplications = () => {
           </tbody>
         </table>
       </div>
+
+      {selectedApp && (
+        <ViewModal
+          application={selectedApp}
+          onClose={() => setSelectedApp(null)}
+        />
+      )}
     </div>
   );
 };
