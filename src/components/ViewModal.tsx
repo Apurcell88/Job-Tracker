@@ -16,7 +16,7 @@ type Props = {
 
 const ViewModal = ({ application, onClose }: Props) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black opacity-90 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md relative">
         <h2 className="text-lg font-semibold mb-4">Application Details</h2>
         <p>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Status } from "@/generated/prisma";
 import { format } from "date-fns";
 import ViewModal from "./ViewModal";
+import EditModal from "./EditModal";
 
 type ApplicationCard = {
   id: string;
@@ -13,11 +14,10 @@ type ApplicationCard = {
   appliedDate: string;
 };
 
-// Modal component
-
 const DashboardApplications = () => {
   const [applications, setApplications] = useState<ApplicationCard[]>([]);
   const [selectedApp, setSelectedApp] = useState<ApplicationCard | null>(null);
+  const [editingApp, setEditingApp] = useState<ApplicationCard | null>(null);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -29,7 +29,36 @@ const DashboardApplications = () => {
     fetchApplications();
   }, []);
 
-  const handleEdit = (app: ApplicationCard) => {};
+  const handleEdit = (app: ApplicationCard) => {
+    setEditingApp(app);
+  };
+
+  const handleSaveEdit = async (app: ApplicationCard) => {
+    try {
+      const res = await fetch(`/api/applications/${app.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company: app.company,
+          position: app.position,
+          status: app.status, // include these
+          appliedDate: app.appliedDate,
+        }),
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setApplications((prev) =>
+          prev.map((a) => (a.id === updated.id ? updated : a))
+        );
+        setSelectedApp(null);
+      } else {
+        console.error("Failed to save edits");
+      }
+    } catch (err) {
+      console.error("Save edit error:", err);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     const confirmDelete = confirm(
@@ -116,6 +145,14 @@ const DashboardApplications = () => {
         <ViewModal
           application={selectedApp}
           onClose={() => setSelectedApp(null)}
+        />
+      )}
+
+      {editingApp && (
+        <EditModal
+          application={editingApp}
+          onClose={() => setEditingApp(null)}
+          onSave={handleSaveEdit}
         />
       )}
     </div>

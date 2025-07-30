@@ -52,7 +52,7 @@ export default function Home() {
           applications.
         </p>
         <a
-          href="/login"
+          href="/dashboard"
           className="inline-block bg-white text-indigo-600 px-8 py-3 rounded-md font-semibold hover:bg-gray-100 transition"
         >
           Get Started Free
