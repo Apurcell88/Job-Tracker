@@ -12,8 +12,6 @@ export async function PUT(
   try {
     const data = await req.json();
 
-    console.log("Incoming data:", data);
-
     const updatedApp = await prisma.application.update({
       where: { id },
       data: {
@@ -29,6 +27,30 @@ export async function PUT(
     console.error("Error updating application:", err);
     return NextResponse.json(
       { error: "Unable to update application" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const id = params.id;
+
+  try {
+    await prisma.application.delete({
+      where: { id },
+    });
+
+    return NextResponse.json(
+      { message: "Deleted successfully" },
+      { status: 200 }
+    );
+  } catch (err) {
+    console.error("Error deleting application:", err);
+    return NextResponse.json(
+      { error: "Unable to delete application" },
       { status: 500 }
     );
   }

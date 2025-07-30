@@ -41,7 +41,7 @@ const DashboardApplications = () => {
         body: JSON.stringify({
           company: app.company,
           position: app.position,
-          status: app.status, // include these
+          status: app.status,
           appliedDate: app.appliedDate,
         }),
       });
