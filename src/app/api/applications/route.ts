@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@/generated/prisma";
+import { auth } from "@clerk/nextjs/server";
 
 const prisma = new PrismaClient();
 
@@ -27,13 +28,16 @@ export async function GET() {
 // POST: create a new application
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const {
-      userId,
       company,
       position,
       location,
-      status,
       jobUrl,
       notes,
       resumeLink,
@@ -41,17 +45,38 @@ export async function POST(req: NextRequest) {
       contactEmail,
       contactPhone,
       appliedDate,
-      followUpDate,
+      followUpdate,
+      status,
       tags,
     } = body;
 
-    const newApplication = await prisma.application.create({
+    if (!company || !position) {
+      return NextResponse.json(
+        { error: "Company and position are required." },
+        { status: 400 }
+      );
+    }
+
+    // Optional: connect to existing tags by name
+    let tagConnections: { id: string }[] = [];
+    if (tags && Array.isArray(tags)) {
+      tagConnections = await Promise.all(
+        tags.map(async (tag: string) => {
+          return prisma.tag.upsert({
+            where: { name: tag },
+            update: {},
+            create: { name: tag },
+          });
+        })
+      );
+    }
+
+    const newApp = await prisma.application.create({
       data: {
         userId,
         company,
         position,
         location,
-        status,
         jobUrl,
         notes,
         resumeLink,
@@ -59,16 +84,19 @@ export async function POST(req: NextRequest) {
         contactEmail,
         contactPhone,
         appliedDate: appliedDate ? new Date(appliedDate) : undefined,
-        followUpDate: followUpDate ? new Date(followUpDate) : undefined,
-        tags: tags?.length
-          ? { connect: tags.map((tagId: string) => ({ id: tagId })) }
+        followUpDate: followUpdate ? new Date(followUpdate) : undefined,
+        status, // Optional, defaults to APPLIED
+        tags: tagConnections.length
+          ? {
+              connect: tagConnections.map((tag) => ({ id: tag.id })),
+            }
           : undefined,
       },
     });
 
-    return NextResponse.json(newApplication, { status: 201 });
+    return NextResponse.json(newApp, { status: 201 });
   } catch (err) {
-    console.error("POST /api/applications error:", err);
+    console.error("Error creating application:", err);
     return NextResponse.json(
       { error: "Failed to create application" },
       { status: 500 }

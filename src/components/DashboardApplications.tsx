@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { Status } from "@/generated/prisma";
 import { format } from "date-fns";
+import { toast } from "react-hot-toast";
 import ViewModal from "./ViewModal";
 import EditModal from "./EditModal";
+import CreateApplicationModal from "./CreateApplicationModal";
 
 type ApplicationCard = {
   id: string;
@@ -18,6 +20,7 @@ const DashboardApplications = () => {
   const [applications, setApplications] = useState<ApplicationCard[]>([]);
   const [selectedApp, setSelectedApp] = useState<ApplicationCard | null>(null);
   const [editingApp, setEditingApp] = useState<ApplicationCard | null>(null);
+  const [showCreateApp, setShowCreateApp] = useState(false);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -66,18 +69,21 @@ const DashboardApplications = () => {
     );
     if (!confirmDelete) return;
 
+    const toastId = toast.loading("Deleting...");
+
     try {
-      const res = await fetch(`/app/api/applications/${id}`, {
+      const res = await fetch(`/api/applications/${id}`, {
         method: "DELETE",
       });
 
       if (res.ok) {
         setApplications((prev) => prev.filter((app) => app.id !== id));
+        toast.success("Application deleted", { id: toastId });
       } else {
-        console.error("Failed to delete application");
+        toast.error("Failed to delete application", { id: toastId });
       }
     } catch (err) {
-      console.error("Error deleting application:", err);
+      toast.error("Error deleting application:", { id: toastId });
     }
   };
 
@@ -89,6 +95,12 @@ const DashboardApplications = () => {
     <div className="bg-white rounded-xl shadow p-6 mt-6">
       <h3 className="text-xl font-semibold mb-4">Recent Applications</h3>
       <div className="overflow-x-auto">
+        <button
+          onClick={() => setShowCreateApp(true)}
+          className="mb-4 text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded cursor-pointer"
+        >
+          + Add Application
+        </button>
         <table className="min-w-full table-auto">
           <thead>
             <tr className="text-left text-sm text-gray-500 border-b">
@@ -154,6 +166,10 @@ const DashboardApplications = () => {
           onClose={() => setEditingApp(null)}
           onSave={handleSaveEdit}
         />
+      )}
+
+      {showCreateApp && (
+        <CreateApplicationModal onClose={() => setShowCreateApp(false)} />
       )}
     </div>
   );
