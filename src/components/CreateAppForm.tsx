@@ -47,11 +47,25 @@ const CreateAppForm = ({ onCreate }: CreateAppFormProps) => {
       .map((tag) => tag.trim())
       .filter((tag) => tag.length > 0);
 
+    // Correct timezone issue for appliedDate and followUpdate
+    const appliedDate = form.appliedDate
+      ? new Date(form.appliedDate + "T00:00:00").toISOString()
+      : null;
+
+    const followUpdate = form.followUpdate
+      ? new Date(form.followUpdate + "T00:00:00").toISOString()
+      : null;
+
     try {
       const res = await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, tags: tagList }),
+        body: JSON.stringify({
+          ...form,
+          tags: tagList,
+          appliedDate,
+          followUpdate,
+        }),
       });
 
       if (res.ok) {
@@ -146,26 +160,56 @@ const CreateAppForm = ({ onCreate }: CreateAppFormProps) => {
         onChange={handleChange}
         className="mr-2"
       />
-      <input
-        type="date"
-        name="appliedDate"
-        value={form.appliedDate}
-        onChange={handleChange}
-        className="mr-2"
-      />
-      <input
-        type="date"
-        name="followUpdate"
-        value={form.followUpdate}
-        onChange={handleChange}
-      />
+      <div>
+        <label
+          htmlFor="appliedDate"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Applied Date{" "}
+          <span className="text-xs text-gray-500">
+            (When you submitted the application)
+          </span>
+        </label>
+        <input
+          type="date"
+          id="appliedDate"
+          name="appliedDate"
+          value={form.appliedDate}
+          onChange={handleChange}
+          className="w-full"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="followUpdate"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Follow-Up Date{" "}
+          <span className="text-xs text-gray-500">
+            (When to follow up on this application)
+          </span>
+        </label>
+        <input
+          type="date"
+          id="followUpdate"
+          name="followUpdate"
+          value={form.followUpdate}
+          onChange={handleChange}
+          className="w-full"
+        />
+      </div>
+
       <input
         name="tags"
         placeholder="Tags (comma separated)"
         value={form.tags}
         onChange={handleChange}
       />
-      <button type="submit" className="cursor-pointer">
+      <button
+        type="submit"
+        className="cursor-pointer bg-blue-700 text-white px-4 py-2 m-2 rounded"
+      >
         Add Application
       </button>
     </form>

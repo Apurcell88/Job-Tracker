@@ -31,13 +31,15 @@ const DashboardApplications = () => {
   }, []);
 
   const filteredApps = selectedTag
-    ? applications.filter((app) =>
-        app.tags.some((tag) => tag.name === selectedTag)
+    ? applications.filter(
+        (app) =>
+          Array.isArray(app.tags) &&
+          app.tags.some((tag) => tag.name === selectedTag)
       )
     : applications;
 
   const allTags = Array.from(
-    new Set(applications.flatMap((app) => app.tags.map((tag) => tag.name)))
+    new Set(applications.flatMap((app) => app.tags?.map((tag) => tag.name)))
   );
 
   const handleEdit = (app: ApplicationCard) => {
