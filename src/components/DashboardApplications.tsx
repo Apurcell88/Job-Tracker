@@ -9,7 +9,9 @@ import EditModal from "./EditModal";
 import CreateApplicationModal from "./CreateApplicationModal";
 import { ApplicationCard } from "../../types";
 
-type EditableApplication = Omit<ApplicationCard, "tags">;
+type EditableApplication = Omit<ApplicationCard, "tags"> & {
+  tags: { name: string }[];
+};
 
 const DashboardApplications = () => {
   const [applications, setApplications] = useState<ApplicationCard[]>([]);
@@ -41,6 +43,7 @@ const DashboardApplications = () => {
           position: app.position,
           status: app.status,
           appliedDate: app.appliedDate,
+          tags: app.tags,
         }),
       });
 
@@ -108,7 +111,8 @@ const DashboardApplications = () => {
               <th className="py-2 pr-4">Role</th>
               <th className="py-2 pr-4">Status</th>
               <th className="py-2 pr-4">Date</th>
-              <th className="py-2">Actions</th>
+              <th className="py-2 pr-4">Tags</th>
+              <th className="py-2 pr-4">Actions</th>
             </tr>
           </thead>
           <tbody>

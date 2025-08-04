@@ -22,6 +22,7 @@ export async function GET() {
           position: true,
           status: true,
           appliedDate: true,
+          tags: true,
         },
       },
     },

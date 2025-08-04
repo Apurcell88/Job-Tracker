@@ -1,31 +1,50 @@
 "use client";
 
 import { useState } from "react";
-import { Status } from "@/generated/prisma";
+// import { Status } from "@/generated/prisma";
+// import { Tag } from "../../types";
+import { ApplicationCard } from "../../types";
 
-type EditableApplication = {
-  id: string;
-  company: string;
-  position: string;
-  status: Status;
-  appliedDate: string;
+// type EditableApplication = {
+//   id: string;
+//   company: string;
+//   position: string;
+//   status: Status;
+//   appliedDate: string;
+//   tags: Tag[];
+// };
+type EditableApplication = Omit<ApplicationCard, "tags"> & {
+  tags: { name: string }[];
 };
 
 type Props = {
-  application: EditableApplication;
+  application: ApplicationCard;
   onClose: () => void;
-  onSave: (updatedApp: EditableApplication) => Promise<void>;
+  onSave: (updated: EditableApplication) => Promise<void>;
 };
 
 const EditModal = ({ application, onClose, onSave }: Props) => {
-  const [form, setForm] = useState({ ...application });
+  const [form, setForm] = useState({
+    ...application,
+    tags: application.tags?.map((tag) => tag.name).join(", ") || "",
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "tags" ? value : value,
+    }));
   };
 
   const handleSubmit = () => {
-    onSave(form);
+    const tagsArray = form.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .map((name) => ({ name }));
+
+    onSave({ ...form, tags: tagsArray });
     onClose();
   };
 
@@ -47,6 +66,13 @@ const EditModal = ({ application, onClose, onSave }: Props) => {
           onChange={handleChange}
           className="w-full border rounded px-3 py-2 text-sm"
           placeholder="Position"
+        />
+        <input
+          name="tags"
+          value={form.tags}
+          onChange={handleChange}
+          className="w-full border rounded px-3 py-2 text-sm"
+          placeholder="Tags (comma separated)"
         />
 
         <div className="flex justify-end space-x-2 pt-4">

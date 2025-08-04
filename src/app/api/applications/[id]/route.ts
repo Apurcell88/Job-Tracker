@@ -19,6 +19,16 @@ export async function PUT(
         position: data.position,
         status: data.status ?? undefined,
         appliedDate: data.appliedDate ? new Date(data.appliedDate) : undefined,
+        tags: {
+          set: [], // clear existing tags
+          connectOrCreate: data.tags?.map((tag: { name: string }) => ({
+            where: { name: tag.name },
+            create: { name: tag.name },
+          })),
+        },
+      },
+      include: {
+        tags: true, // include updated tags in response
       },
     });
 
