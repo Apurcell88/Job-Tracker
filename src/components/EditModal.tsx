@@ -1,18 +1,8 @@
 "use client";
 
 import { useState } from "react";
-// import { Status } from "@/generated/prisma";
-// import { Tag } from "../../types";
 import { ApplicationCard } from "../../types";
 
-// type EditableApplication = {
-//   id: string;
-//   company: string;
-//   position: string;
-//   status: Status;
-//   appliedDate: string;
-//   tags: Tag[];
-// };
 type EditableApplication = Omit<ApplicationCard, "tags"> & {
   tags: { name: string }[];
 };

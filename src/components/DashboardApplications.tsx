@@ -18,6 +18,7 @@ const DashboardApplications = () => {
   const [selectedApp, setSelectedApp] = useState<ApplicationCard | null>(null);
   const [editingApp, setEditingApp] = useState<ApplicationCard | null>(null);
   const [showCreateApp, setShowCreateApp] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -28,6 +29,16 @@ const DashboardApplications = () => {
 
     fetchApplications();
   }, []);
+
+  const filteredApps = selectedTag
+    ? applications.filter((app) =>
+        app.tags.some((tag) => tag.name === selectedTag)
+      )
+    : applications;
+
+  const allTags = Array.from(
+    new Set(applications.flatMap((app) => app.tags.map((tag) => tag.name)))
+  );
 
   const handleEdit = (app: ApplicationCard) => {
     setEditingApp(app);
@@ -104,6 +115,30 @@ const DashboardApplications = () => {
         >
           + Add Application
         </button>
+        <div className="mb-4 flex flex-wrap gap-2">
+          <span className="font-medium text-gray-700">Filter by Tag:</span>
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(tag)}
+              className={`px-3 py-1 rounded-full text-sm border ${
+                selectedTag === tag
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+          {selectedTag && (
+            <button
+              onClick={() => setSelectedTag(null)}
+              className="ml-2 px-3 py-1 rounded-full text-sm text-gray-600 border hover:bg-gray-100"
+            >
+              Clear Filter
+            </button>
+          )}
+        </div>
         <table className="min-w-full table-auto">
           <thead>
             <tr className="text-left text-sm text-gray-500 border-b">
@@ -116,7 +151,7 @@ const DashboardApplications = () => {
             </tr>
           </thead>
           <tbody>
-            {applications.map((app) => (
+            {filteredApps.map((app) => (
               <tr key={app.id} className="border-b text-sm text-gray-700">
                 <td className="py-2 pr-4">{app.company}</td>
                 <td className="py-2 pr-4">{app.position}</td>
