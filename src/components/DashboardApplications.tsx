@@ -91,6 +91,11 @@ const DashboardApplications = () => {
     setSelectedApp(app);
   };
 
+  const handleAddApplication = (newApp: ApplicationCard) => {
+    setApplications((prev) => [newApp, ...prev]);
+    setShowCreateApp(false);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow p-6 mt-6">
       <h3 className="text-xl font-semibold mb-4">Recent Applications</h3>
@@ -169,7 +174,10 @@ const DashboardApplications = () => {
       )}
 
       {showCreateApp && (
-        <CreateApplicationModal onClose={() => setShowCreateApp(false)} />
+        <CreateApplicationModal
+          onClose={() => setShowCreateApp(false)}
+          onCreate={handleAddApplication}
+        />
       )}
     </div>
   );

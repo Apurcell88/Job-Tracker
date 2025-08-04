@@ -7,15 +7,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Status } from "@/generated/prisma";
 
-const CreateApplicationModal = ({ onClose }: { onClose: () => void }) => {
+type ApplicationCard = {
+  id: string;
+  company: string;
+  position: string;
+  status: Status;
+  appliedDate: string;
+};
+
+const CreateApplicationModal = ({
+  onClose,
+  onCreate,
+}: {
+  onClose: () => void;
+  onCreate: (newApp: ApplicationCard) => void;
+}) => {
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Add New Application</DialogTitle>
         </DialogHeader>
-        <CreateAppForm />
+        <CreateAppForm onCreate={onCreate} />
       </DialogContent>
     </Dialog>
   );

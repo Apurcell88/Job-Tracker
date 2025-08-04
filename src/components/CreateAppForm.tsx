@@ -2,8 +2,21 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { Status } from "@/generated/prisma";
 
-const CreateAppForm = () => {
+type CreateAppFormProps = {
+  onCreate: (newApp: ApplicationCard) => void;
+};
+
+type ApplicationCard = {
+  id: string;
+  company: string;
+  position: string;
+  status: Status;
+  appliedDate: string;
+};
+
+const CreateAppForm = ({ onCreate }: CreateAppFormProps) => {
   const [form, setForm] = useState({
     company: "",
     position: "",
@@ -42,6 +55,8 @@ const CreateAppForm = () => {
       });
 
       if (res.ok) {
+        const createdApp = await res.json();
+        onCreate(createdApp);
         toast.success("Application added!");
         setForm({
           company: "",
