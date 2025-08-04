@@ -7,14 +7,9 @@ import { toast } from "react-hot-toast";
 import ViewModal from "./ViewModal";
 import EditModal from "./EditModal";
 import CreateApplicationModal from "./CreateApplicationModal";
+import { ApplicationCard } from "../../types";
 
-type ApplicationCard = {
-  id: string;
-  company: string;
-  position: string;
-  status: Status;
-  appliedDate: string;
-};
+type EditableApplication = Omit<ApplicationCard, "tags">;
 
 const DashboardApplications = () => {
   const [applications, setApplications] = useState<ApplicationCard[]>([]);
@@ -36,7 +31,7 @@ const DashboardApplications = () => {
     setEditingApp(app);
   };
 
-  const handleSaveEdit = async (app: ApplicationCard) => {
+  const handleSaveEdit = async (app: EditableApplication) => {
     try {
       const res = await fetch(`/api/applications/${app.id}`, {
         method: "PUT",
@@ -124,6 +119,18 @@ const DashboardApplications = () => {
                 <td className="py-2 pr-4">{app.status}</td>
                 <td className="py-2 pr-4">
                   {format(new Date(app.appliedDate), "MMM d, yyyy")}
+                </td>
+                <td className="py-2 pr-4">
+                  <div className="flex flex-wrap gap-1">
+                    {app.tags?.map((tag) => (
+                      <span
+                        key={tag.id}
+                        className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full"
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
                 </td>
                 <td className="py-2 space-x-3">
                   <button

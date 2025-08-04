@@ -7,7 +7,14 @@ const prisma = new PrismaClient();
 // GET: Fetch all applications
 export async function GET() {
   try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const applications = await prisma.application.findMany({
+      where: { userId },
       include: {
         tags: true,
       },

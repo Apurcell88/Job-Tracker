@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Status } from "@/generated/prisma";
 
-type ApplicationCard = {
+type EditableApplication = {
   id: string;
   company: string;
   position: string;
@@ -12,9 +12,9 @@ type ApplicationCard = {
 };
 
 type Props = {
-  application: ApplicationCard;
+  application: EditableApplication;
   onClose: () => void;
-  onSave: (updatedApp: ApplicationCard) => void;
+  onSave: (updatedApp: EditableApplication) => Promise<void>;
 };
 
 const EditModal = ({ application, onClose, onSave }: Props) => {

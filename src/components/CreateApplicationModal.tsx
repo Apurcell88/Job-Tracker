@@ -8,14 +8,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Status } from "@/generated/prisma";
+import { ApplicationCard } from "../../types";
 
-type ApplicationCard = {
-  id: string;
-  company: string;
-  position: string;
-  status: Status;
-  appliedDate: string;
-};
+// type ApplicationCard = {
+//   id: string;
+//   company: string;
+//   position: string;
+//   status: Status;
+//   appliedDate: string;
+// };
 
 const CreateApplicationModal = ({
   onClose,
