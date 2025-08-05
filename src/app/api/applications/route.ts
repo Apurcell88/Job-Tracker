@@ -99,6 +99,9 @@ export async function POST(req: NextRequest) {
             }
           : undefined,
       },
+      include: {
+        tags: true,
+      },
     });
 
     return NextResponse.json(newApp, { status: 201 });

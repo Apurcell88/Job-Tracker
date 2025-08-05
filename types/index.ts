@@ -13,3 +13,5 @@ export type ApplicationCard = {
   appliedDate: string;
   tags: Tag[];
 };
+
+export type NewApplicationFormData = Omit<ApplicationCard, "id">;

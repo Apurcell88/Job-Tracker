@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Status } from "@/generated/prisma";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
 import ViewModal from "./ViewModal";
@@ -134,6 +133,7 @@ const DashboardApplications = () => {
           ))}
           {selectedTag && (
             <button
+              key="clear-filter"
               onClick={() => setSelectedTag(null)}
               className="ml-2 px-3 py-1 rounded-full text-sm text-gray-600 border hover:bg-gray-100"
             >
@@ -165,7 +165,7 @@ const DashboardApplications = () => {
                   <div className="flex flex-wrap gap-1">
                     {app.tags?.map((tag) => (
                       <span
-                        key={tag.id}
+                        key={tag.id || tag.name}
                         className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full"
                       >
                         {tag.name}
