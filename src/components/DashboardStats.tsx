@@ -1,17 +1,45 @@
 "use client";
 
-const stats = [
-  // hardcoded for now. Replace later with dynamic data
-  { label: "Total Apps", value: 12 },
-  { label: "Interrviews", value: 4 },
-  { label: "Offers", value: 2 },
-  { label: "Rejections", value: 3 },
-];
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
+
+type Stats = {
+  total: number;
+  interviews: number;
+  offers: number;
+  rejections: number;
+};
 
 const DashboardStats = () => {
+  const { user } = useUser();
+  const [stats, setStats] = useState<Stats | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user?.id) return;
+
+      const res = await fetch(`/api/stats?userId=${user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    };
+
+    fetchStats();
+  }, [user]);
+
+  if (!stats) return null;
+
+  const displayStats = [
+    { label: "Total Apps", value: stats.total },
+    { label: "Interviews", value: stats.interviews },
+    { label: "Offers", value: stats.offers },
+    { label: "Rejections", value: stats.rejections },
+  ];
+
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-      {stats.map((stat) => (
+      {displayStats.map((stat) => (
         <div
           key={stat.label}
           className="bg-white shadow rounded-xl p-4 text-center border"
