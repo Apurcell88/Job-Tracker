@@ -10,7 +10,11 @@ type Stats = {
   rejections: number;
 };
 
-const DashboardStats = () => {
+type Props = {
+  refreshKey: number;
+};
+
+const DashboardStats = ({ refreshKey }: Props) => {
   const { user } = useUser();
   const [stats, setStats] = useState<Stats | null>(null);
 
@@ -18,7 +22,7 @@ const DashboardStats = () => {
     const fetchStats = async () => {
       if (!user?.id) return;
 
-      const res = await fetch(`/api/stats?userId=${user.id}`);
+      const res = await fetch(`/api/stats`);
       if (res.ok) {
         const data = await res.json();
         setStats(data);
@@ -26,7 +30,7 @@ const DashboardStats = () => {
     };
 
     fetchStats();
-  }, [user]);
+  }, [user, refreshKey]);
 
   if (!stats) return null;
 

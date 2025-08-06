@@ -7,12 +7,25 @@ import ViewModal from "./ViewModal";
 import EditModal from "./EditModal";
 import CreateApplicationModal from "./CreateApplicationModal";
 import { ApplicationCard } from "../../types";
+import { Status } from "@/generated/prisma";
+
+const statusOptions: Status[] = [
+  "APPLIED",
+  "INTERVIEWING",
+  "OFFER",
+  "REJECTED",
+  "ARCHIVED",
+];
 
 type EditableApplication = Omit<ApplicationCard, "tags"> & {
   tags: { name: string }[];
 };
 
-const DashboardApplications = () => {
+type Props = {
+  onStatusChange: () => void;
+};
+
+const DashboardApplications = ({ onStatusChange }: Props) => {
   const [applications, setApplications] = useState<ApplicationCard[]>([]);
   const [selectedApp, setSelectedApp] = useState<ApplicationCard | null>(null);
   const [editingApp, setEditingApp] = useState<ApplicationCard | null>(null);
@@ -89,6 +102,7 @@ const DashboardApplications = () => {
       if (res.ok) {
         setApplications((prev) => prev.filter((app) => app.id !== id));
         toast.success("Application deleted", { id: toastId });
+        onStatusChange();
       } else {
         toast.error("Failed to delete application", { id: toastId });
       }
@@ -104,6 +118,43 @@ const DashboardApplications = () => {
   const handleAddApplication = (newApp: ApplicationCard) => {
     setApplications((prev) => [newApp, ...prev]);
     setShowCreateApp(false);
+    onStatusChange();
+  };
+
+  const handleStatusChange = async (
+    applicationId: string,
+    newStatus: Status
+  ) => {
+    if (!applicationId || !newStatus) {
+      console.error("Missing applicationId or newStatus");
+      return;
+    }
+
+    setApplications((prevApps) =>
+      prevApps.map((app) =>
+        app.id === applicationId ? { ...app, status: newStatus } : app
+      )
+    );
+
+    try {
+      const res = await fetch(`/api/applications/${applicationId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Status update failed: ${res.status}`);
+      }
+
+      console.log("Status updated successfully");
+      onStatusChange();
+      // Optionally refetch or update local state
+    } catch (err) {
+      console.error("Status update error:", err);
+    }
   };
 
   return (
@@ -157,7 +208,21 @@ const DashboardApplications = () => {
               <tr key={app.id} className="border-b text-sm text-gray-700">
                 <td className="py-2 pr-4">{app.company}</td>
                 <td className="py-2 pr-4">{app.position}</td>
-                <td className="py-2 pr-4">{app.status}</td>
+                <td className="py-2 pr-4">
+                  <select
+                    value={app.status}
+                    onChange={(e) =>
+                      handleStatusChange(app.id, e.target.value as Status)
+                    }
+                    className="border rounded px-2 py-1 text-sm"
+                  >
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </td>
                 <td className="py-2 pr-4">
                   {format(new Date(app.appliedDate), "MMM d, yyyy")}
                 </td>
