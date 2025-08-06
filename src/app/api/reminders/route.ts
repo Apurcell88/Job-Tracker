@@ -5,6 +5,8 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const nextWeek = new Date();
   nextWeek.setDate(today.getDate() + 7);
 

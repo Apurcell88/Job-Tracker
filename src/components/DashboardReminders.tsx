@@ -7,7 +7,7 @@ type Reminder = {
   company: string;
   position: string;
   appliedDate: string; // ISO string date
-  followUpdate: string; // ISO string date
+  followUpDate: string; // ISO string date
 };
 
 const DashboardReminders = () => {
@@ -18,26 +18,15 @@ const DashboardReminders = () => {
       const res = await fetch("/api/reminders");
       if (res.ok) {
         const data = await res.json();
-
-        // Filter reminders with followUpdate within 7 days after appliedDate
-        const filtered = data.filter((app: Reminder) => {
-          if (!app.followUpdate || !app.appliedDate) return false;
-
-          const appliedDate = new Date(app.appliedDate);
-          const followUpdate = new Date(app.followUpdate);
-
-          if (isNaN(appliedDate.getTime()) || isNaN(followUpdate.getTime()))
-            return false;
-
-          const diffInMs = followUpdate.getTime() - appliedDate.getTime();
-          const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-
-          return diffInDays >= 0 && diffInDays <= 7;
-        });
-        setReminders(filtered);
+        setReminders(data); // server already filters within 7 days
       }
     };
+
     fetchReminders();
+
+    const interval = setInterval(fetchReminders, 10000); // every 10 secs
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -48,7 +37,7 @@ const DashboardReminders = () => {
       ) : (
         <ul className="space-y-2">
           {reminders.map((app) => {
-            const followDate = new Date(app.followUpdate);
+            const followDate = new Date(app.followUpDate);
             const isValidDate = !isNaN(followDate.getTime());
 
             return (
