@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import ViewModal from "./ViewModal";
 import EditModal from "./EditModal";
 import CreateApplicationModal from "./CreateApplicationModal";
+import InterviewModal from "./InterviewModal";
 import { ApplicationCard } from "../../types";
 import { Status } from "@/generated/prisma";
 
@@ -31,6 +32,8 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
   const [editingApp, setEditingApp] = useState<ApplicationCard | null>(null);
   const [showCreateApp, setShowCreateApp] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+  const [pendingAppId, setPendingAppId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -121,6 +124,32 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
     onStatusChange();
   };
 
+  const updateStatus = async (
+    applicationId: string,
+    status: Status,
+    interviewDate?: string
+  ) => {
+    try {
+      const res = await fetch(`/api/applications/${applicationId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status, interviewDate }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Status update failed: ${res.status}`);
+      }
+
+      console.log("Status updated successfully");
+      onStatusChange();
+      // Optionally refetch or update local state
+    } catch (err) {
+      console.error("Status update error:", err);
+    }
+  };
+
   const handleStatusChange = async (
     applicationId: string,
     newStatus: Status
@@ -136,25 +165,26 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
       )
     );
 
-    try {
-      const res = await fetch(`/api/applications/${applicationId}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Status update failed: ${res.status}`);
-      }
-
-      console.log("Status updated successfully");
-      onStatusChange();
-      // Optionally refetch or update local state
-    } catch (err) {
-      console.error("Status update error:", err);
+    if (newStatus === "INTERVIEWING") {
+      setPendingAppId(applicationId);
+      setShowInterviewModal(true);
+      return;
     }
+
+    await updateStatus(applicationId, newStatus);
+  };
+
+  const handleInterviewConfirm = async (dateTime: string) => {
+    if (pendingAppId) {
+      await updateStatus(pendingAppId, "INTERVIEWING", dateTime);
+      setPendingAppId(null);
+      setShowInterviewModal(false);
+    }
+  };
+
+  const handleInterviewCancel = () => {
+    setPendingAppId(null);
+    setShowInterviewModal(false);
   };
 
   return (
@@ -290,6 +320,13 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
         <CreateApplicationModal
           onClose={() => setShowCreateApp(false)}
           onCreate={handleAddApplication}
+        />
+      )}
+
+      {showInterviewModal && (
+        <InterviewModal
+          onConfirm={handleInterviewConfirm}
+          onCancel={handleInterviewCancel}
         />
       )}
     </div>
