@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import useSWR from "swr";
 
 type Reminder = {
   id: string;
@@ -16,50 +17,51 @@ type Interview = {
   interviewDate: string;
 };
 
-const DashboardReminders = () => {
-  const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [interviews, setInterviews] = useState<Interview[]>([]);
+type Props = {
+  refreshKey: number;
+};
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+const DashboardReminders = ({ refreshKey }: Props) => {
+  const {
+    data: reminders,
+    error: remindersError,
+    isLoading: remindersLoading,
+    mutate: refetchReminders,
+  } = useSWR<Reminder[]>("/api/reminders", fetcher, {
+    revalidateOnFocus: true,
+  });
+
+  const {
+    data: interviews,
+    error: interviewsError,
+    isLoading: interviewsLoading,
+    mutate: refetchInterviews,
+  } = useSWR<Interview[]>("/api/interviews", fetcher, {
+    // refreshInterval: 60000, // optional
+    revalidateOnFocus: true,
+  });
 
   useEffect(() => {
-    const fetchReminders = async () => {
-      const res = await fetch("/api/reminders");
-      if (res.ok) {
-        const data = await res.json();
-        setReminders(data); // server already filters within 7 days
-      }
-    };
+    refetchReminders();
+  }, [refreshKey, refetchReminders]);
 
-    const fetchInterviews = async () => {
-      const res = await fetch("/api/interviews");
-      if (res.ok) {
-        const data = await res.json();
-        setInterviews(data);
-      }
-    };
-
-    fetchReminders();
-    fetchInterviews();
-
-    const interval = setInterval(() => {
-      fetchReminders();
-      fetchInterviews();
-    }, 1000); // refresh every 1s
-
-    return () => clearInterval(interval);
-  }, []);
+  if (remindersLoading || interviewsLoading) return <div>Loading...</div>;
+  if (remindersError || interviewsError) return <div>Error loading data.</div>;
 
   return (
     <div className="p-4 mt-4 rounded-lg border shadow bg-white">
       <h2 className="text-lg font-semibold mb-4">Upcoming Reminders</h2>
 
       {/* Follow-Up Reminders */}
-      {reminders.length === 0 ? (
+      {reminders?.length === 0 ? (
         <p className="text-sm text-gray-500 mb-4">No upcoming follow-ups.</p>
       ) : (
         <div className="mb-6">
           <h3 className="text-md font-medium mb-2">Follow-Ups</h3>
           <ul className="space-y-2">
-            {reminders.map((app) => {
+            {reminders?.map((app) => {
               const followDate = new Date(app.followUpDate);
               const isValidDate = !isNaN(followDate.getTime());
 
@@ -82,13 +84,13 @@ const DashboardReminders = () => {
       )}
 
       {/* Interview Reminders */}
-      {interviews.length === 0 ? (
+      {interviews?.length === 0 ? (
         <p className="text-sm text-gray-500">No upcoming interviews.</p>
       ) : (
         <div>
           <h3 className="text-md font-medium mb-2">Interviews</h3>
           <ul className="space-y-2">
-            {interviews.map((interview) => {
+            {interviews?.map((interview) => {
               const date = new Date(interview.interviewDate);
               const isValidDate = !isNaN(date.getTime());
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
+import { mutate } from "swr";
+import { differenceInCalendarDays, format } from "date-fns";
 import { toast } from "react-hot-toast";
 import ViewModal from "./ViewModal";
 import EditModal from "./EditModal";
@@ -89,7 +90,7 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, status: Status) => {
     const confirmDelete = confirm(
       "Are you sure you want to delete this application?"
     );
@@ -106,6 +107,10 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
         setApplications((prev) => prev.filter((app) => app.id !== id));
         toast.success("Application deleted", { id: toastId });
         onStatusChange();
+
+        if (status === "INTERVIEWING") {
+          await mutate("/api/interviews"); // revalidate interviews data
+        }
       } else {
         toast.error("Failed to delete application", { id: toastId });
       }
@@ -118,7 +123,7 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
     setSelectedApp(app);
   };
 
-  const handleAddApplication = (newApp: ApplicationCard) => {
+  const handleAddApplication = async (newApp: ApplicationCard) => {
     setApplications((prev) => [newApp, ...prev]);
     setShowCreateApp(false);
     onStatusChange();
@@ -127,7 +132,8 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
   const updateStatus = async (
     applicationId: string,
     status: Status,
-    interviewDate?: string
+    interviewDate?: string,
+    followUpDate?: string
   ) => {
     try {
       const res = await fetch(`/api/applications/${applicationId}/status`, {
@@ -135,7 +141,7 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status, interviewDate }),
+        body: JSON.stringify({ status, interviewDate, followUpDate }),
       });
 
       if (!res.ok) {
@@ -144,7 +150,27 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
 
       console.log("Status updated successfully");
       onStatusChange();
-      // Optionally refetch or update local state
+
+      if (status === "INTERVIEWING") {
+        await mutate("/api/interviews");
+      }
+
+      if (followUpDate) {
+        const diff = differenceInCalendarDays(
+          new Date(followUpDate),
+          new Date()
+        );
+        if (diff >= 0 && diff <= 7) {
+          await mutate(
+            "/api/reminders",
+            async () => {
+              const res = await fetch("/api/reminders");
+              return res.json();
+            },
+            false
+          );
+        }
+      }
     } catch (err) {
       console.error("Status update error:", err);
     }
@@ -283,7 +309,7 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
                   </button>
                   <button
                     className="text-red-600 hover:underline text-sm"
-                    onClick={() => handleDelete(app.id)}
+                    onClick={() => handleDelete(app.id, app.status)}
                   >
                     Delete
                   </button>

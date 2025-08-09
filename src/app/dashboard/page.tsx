@@ -20,7 +20,7 @@ const DashboardPage = () => {
         <DashboardApplications
           onStatusChange={() => setRefreshKey((k) => k + 1)}
         />
-        <DashboardReminders />
+        <DashboardReminders refreshKey={refreshKey} />
       </div>
     </main>
   );
