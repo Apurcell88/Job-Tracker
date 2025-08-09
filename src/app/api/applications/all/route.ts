@@ -1,5 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@/generated/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
@@ -10,14 +10,9 @@ export async function GET() {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const total = await prisma.application.count({
-    where: { userId },
-  });
-
-  const recentApplications = await prisma.application.findMany({
+  const allApplications = await prisma.application.findMany({
     where: { userId },
     orderBy: { appliedDate: "desc" },
-    take: 5,
     select: {
       id: true,
       company: true,
@@ -28,8 +23,5 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({
-    total,
-    recentApplications,
-  });
+  return NextResponse.json(allApplications);
 }

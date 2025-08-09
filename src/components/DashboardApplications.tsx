@@ -19,6 +19,11 @@ const statusOptions: Status[] = [
   "ARCHIVED",
 ];
 
+type ApiResponse = {
+  total: number;
+  recentApplications: ApplicationCard[];
+};
+
 type EditableApplication = Omit<ApplicationCard, "tags"> & {
   tags: { name: string }[];
 };
@@ -29,6 +34,8 @@ type Props = {
 
 const DashboardApplications = ({ onStatusChange }: Props) => {
   const [applications, setApplications] = useState<ApplicationCard[]>([]);
+  const [showAll, setShowAll] = useState(false);
+  const [totalApplications, setTotalApplications] = useState(0);
   const [selectedApp, setSelectedApp] = useState<ApplicationCard | null>(null);
   const [editingApp, setEditingApp] = useState<ApplicationCard | null>(null);
   const [showCreateApp, setShowCreateApp] = useState(false);
@@ -39,24 +46,59 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
   useEffect(() => {
     const fetchApplications = async () => {
       const res = await fetch("/api/applications/recent");
-      const data = await res.json();
-      setApplications(data);
+      const data: ApiResponse = await res.json();
+      setApplications(data.recentApplications);
+      setTotalApplications(data.total);
     };
 
     fetchApplications();
   }, []);
 
+  const normalizedApplications = Array.isArray(applications)
+    ? applications
+    : [];
+
   const filteredApps = selectedTag
-    ? applications.filter(
+    ? normalizedApplications.filter(
         (app) =>
           Array.isArray(app.tags) &&
           app.tags.some((tag) => tag.name === selectedTag)
       )
-    : applications;
+    : normalizedApplications;
 
   const allTags = Array.from(
-    new Set(applications.flatMap((app) => app.tags?.map((tag) => tag.name)))
+    new Set(
+      normalizedApplications.flatMap(
+        (app) => app.tags?.map((tag) => tag.name) ?? []
+      )
+    )
   );
+
+  const fetchRecentApplications = async () => {
+    const res = await fetch("/api/applications/recent");
+    const data: ApiResponse = await res.json();
+    setApplications(data.recentApplications);
+    setTotalApplications(data.total);
+  };
+
+  const fetchAllApplications = async () => {
+    const res = await fetch("/api/applications/all");
+    const data: ApplicationCard[] = await res.json();
+    setApplications(data);
+  };
+
+  const handleToggleShow = async () => {
+    if (showAll) {
+      await fetchRecentApplications();
+    } else {
+      await fetchAllApplications();
+    }
+    setShowAll(!showAll);
+  };
+
+  useEffect(() => {
+    fetchRecentApplications();
+  }, []);
 
   const handleEdit = (app: ApplicationCard) => {
     setEditingApp(app);
@@ -104,7 +146,12 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
       });
 
       if (res.ok) {
-        setApplications((prev) => prev.filter((app) => app.id !== id));
+        const resRecent = await fetch("/api/applications/recent");
+        const data = await resRecent.json();
+        // setApplications((prev) => prev.filter((app) => app.id !== id));
+        setApplications(data.recentApplications);
+        setTotalApplications(data.total);
+
         toast.success("Application deleted", { id: toastId });
         onStatusChange();
 
@@ -124,7 +171,7 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
   };
 
   const handleAddApplication = async (newApp: ApplicationCard) => {
-    setApplications((prev) => [newApp, ...prev]);
+    setApplications((prev) => [newApp, ...prev].slice(0, 5));
     setShowCreateApp(false);
     onStatusChange();
   };
@@ -334,6 +381,14 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
             )}
           </tbody>
         </table>
+        {totalApplications > 5 && (
+          <button
+            onClick={handleToggleShow}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded cursor-pointer"
+          >
+            {showAll ? "Show Recent" : "Show All"}
+          </button>
+        )}
       </div>
 
       {selectedApp && (
