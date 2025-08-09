@@ -185,6 +185,9 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
       return;
     }
 
+    const oldApp = applications.find((app) => app.id === applicationId);
+    const oldStatus: Status | undefined = oldApp?.status;
+
     setApplications((prevApps) =>
       prevApps.map((app) =>
         app.id === applicationId ? { ...app, status: newStatus } : app
@@ -198,6 +201,12 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
     }
 
     await updateStatus(applicationId, newStatus);
+
+    // If status changed from INTERVIEWING to something else,
+    // refresh interviews so the app disappears from interviews list
+    if (oldStatus === "INTERVIEWING" && newStatus !== "INTERVIEWING") {
+      await mutate("/api/interviews");
+    }
   };
 
   const handleInterviewConfirm = async (dateTime: string) => {
