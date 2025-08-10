@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import useSWR from "swr";
 
@@ -48,14 +48,36 @@ const DashboardReminders = ({ refreshKey }: Props) => {
     revalidateOnFocus: true,
   });
 
+  const [showAlerts, setShowAlerts] = useState(false);
+
   useEffect(() => {
     refetchReminders();
+    setShowAlerts(true);
   }, [refreshKey, refetchReminders]);
 
   if (remindersLoading || interviewsLoading) return <div>Loading...</div>;
   if (remindersError || interviewsError) return <div>Error loading data.</div>;
 
   const { upcoming = [], overdue = [] } = data || {};
+
+  // Calculate today's range for interviews today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  // Critical overdue follow-ups (already overdue)
+  const criticalOverdue = overdue.filter((app) => {
+    const followUpDate = new Date(app.followUpDate);
+    return followUpDate < today;
+  });
+
+  // Interviews happening today
+  const interviewsToday =
+    interviews?.filter((interview) => {
+      const interviewDate = new Date(interview.interviewDate);
+      return interviewDate >= today && interviewDate < tomorrow;
+    }) || [];
 
   const markComplete = async (id: string) => {
     try {
@@ -69,12 +91,65 @@ const DashboardReminders = ({ refreshKey }: Props) => {
         toast.error("Failed to makr complete");
       }
     } catch (err) {
-      toast.error("Errorr marking complete");
+      toast.error("Error marking complete");
     }
   };
 
   return (
     <div className="p-4 mt-4 rounded-lg border shadow bg-white">
+      {/* Notification Center */}
+      <div
+        className={`space-y-3 mb-6 transition-opacity duration-700 ${
+          showAlerts ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        {criticalOverdue.length > 0 && (
+          <div className="flex items-center gap-3 bg-red-100 border border-red-400 text-red-700 p-4 rounded shadow animate-pulse">
+            <svg
+              className="w-6 h-6 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9z"
+              />
+            </svg>
+            <p className="font-semibold text-lg">
+              You have {criticalOverdue.length} overdue follow-up
+              {criticalOverdue.length > 1 ? "s" : ""}! Please check them.
+            </p>
+          </div>
+        )}
+
+        {interviewsToday.length > 0 && (
+          <div className="flex items-center gap-3 bg-yellow-100 border border-yellow-400 text-yellow-700 p-4 rounded shadow animate-pulse">
+            <svg
+              className="w-6 h-6 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2v-5H3v5a2 2 0 002 2z"
+              />
+            </svg>
+            <p className="font-semibold text-lg">
+              You have {interviewsToday.length} interview
+              {interviewsToday.length > 1 ? "s" : ""} scheduled for today.
+            </p>
+          </div>
+        )}
+      </div>
+
       <h2 className="text-lg font-semibold mb-4">Upcoming Reminders</h2>
 
       {/* Follow-Up Reminders */}
