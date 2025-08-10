@@ -5,19 +5,20 @@ import { NextResponse } from "next/server";
 const prisma = new PrismaClient();
 
 export async function GET() {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
-    const now = new Date();
+    const { userId } = await auth();
+    if (!userId)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const interviews = await prisma.application.findMany({
       where: {
         userId,
         status: "INTERVIEWING",
         interviewDate: {
-          gte: now,
+          gte: today,
         },
       },
       select: {

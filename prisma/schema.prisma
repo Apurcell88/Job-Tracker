@@ -40,6 +40,7 @@ model Application {
   contactPhone String?
   appliedDate  DateTime      @default(now())
   followUpDate DateTime?     // For reminders
+  followUpCompleted Boolean @default(false)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   tags         Tag[]
