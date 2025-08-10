@@ -148,9 +148,10 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
       if (res.ok) {
         const resRecent = await fetch("/api/applications/recent");
         const data = await resRecent.json();
-        // setApplications((prev) => prev.filter((app) => app.id !== id));
+
         setApplications(data.recentApplications);
         setTotalApplications(data.total);
+        setShowAll(false);
 
         toast.success("Application deleted", { id: toastId });
         onStatusChange();
@@ -172,6 +173,8 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
 
   const handleAddApplication = async (newApp: ApplicationCard) => {
     setApplications((prev) => [newApp, ...prev].slice(0, 5));
+    setTotalApplications((prevTotal) => prevTotal + 1);
+    setShowAll(false);
     setShowCreateApp(false);
     onStatusChange();
   };
