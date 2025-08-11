@@ -7,6 +7,10 @@ type ApplicationCard = {
   position: string;
   status: Status;
   appliedDate: string;
+  notes?: string;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
 };
 
 type Props = {
@@ -32,6 +36,27 @@ const ViewModal = ({ application, onClose }: Props) => {
           <strong>Applied Date:</strong>{" "}
           {format(new Date(application.appliedDate), "MMM d, yyyy")}
         </p>
+
+        {application.notes && (
+          <p>
+            <strong>Notes:</strong> {application.notes}
+          </p>
+        )}
+        {application.contactName && (
+          <p>
+            <strong>Contact Name:</strong> {application.contactName}
+          </p>
+        )}
+        {application.contactPhone && (
+          <p>
+            <strong>Contact Phone:</strong> {application.contactPhone}
+          </p>
+        )}
+        {application.contactEmail && (
+          <p>
+            <strong>Contact Email:</strong> {application.contactEmail}
+          </p>
+        )}
         <button
           onClick={onClose}
           className="absolute top-2 right-3 text-gray-600 hover:text-gray-900"
