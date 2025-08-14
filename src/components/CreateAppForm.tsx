@@ -14,6 +14,7 @@ type ApplicationCard = {
   position: string;
   status: Status;
   appliedDate: string;
+  tags: string[];
 };
 
 const CreateAppForm = ({ onCreate }: CreateAppFormProps) => {
