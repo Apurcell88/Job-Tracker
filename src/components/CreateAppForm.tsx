@@ -3,19 +3,20 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { Status } from "@/generated/prisma";
+import { ApplicationCard, Tag } from "../../types";
 
 type CreateAppFormProps = {
   onCreate: (newApp: ApplicationCard) => void;
 };
 
-type ApplicationCard = {
-  id: string;
-  company: string;
-  position: string;
-  status: Status;
-  appliedDate: string;
-  tags: string[];
-};
+// type ApplicationCard = {
+//   id: string;
+//   company: string;
+//   position: string;
+//   status: Status;
+//   appliedDate: string;
+//   tags: string[];
+// };
 
 const CreateAppForm = ({ onCreate }: CreateAppFormProps) => {
   const [form, setForm] = useState({
@@ -46,7 +47,8 @@ const CreateAppForm = ({ onCreate }: CreateAppFormProps) => {
     const tagList = form.tags
       .split(",")
       .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0);
+      .filter((tag) => tag.length > 0)
+      .map((t) => ({ name: t }));
 
     // Correct timezone issue for appliedDate and followUpdate
     const appliedDate = form.appliedDate
