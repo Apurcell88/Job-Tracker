@@ -4,10 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 
 const prisma = new PrismaClient();
 
-export async function PATCH(
-  request: Request,
-  context: { params: { id: string } } // keep it simple like this
-) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function PATCH(request: Request, context: any) {
   try {
     const { userId } = await auth();
     if (!userId)
