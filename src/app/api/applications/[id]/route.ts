@@ -40,11 +40,8 @@ export async function PUT(req: NextRequest, context: any) {
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const id = params.id;
+export async function DELETE(req: NextRequest, context: any) {
+  const id = context.params.id;
 
   try {
     await prisma.application.delete({
