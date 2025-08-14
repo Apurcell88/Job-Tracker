@@ -254,7 +254,10 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
 
     // If status changed from INTERVIEWING to something else,
     // refresh interviews so the app disappears from interviews list
-    if (oldStatus === "INTERVIEWING" && newStatus !== "INTERVIEWING") {
+    if (
+      oldStatus === Status.INTERVIEWING &&
+      newStatus !== (Status.INTERVIEWING as unknown)
+    ) {
       await mutate("/api/interviews");
     }
   };
