@@ -6,14 +6,14 @@ const prisma = new PrismaClient();
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Record<string, string> } // <-- updated type
+  context: { params: { id: string } } // keep it simple like this
 ) {
   try {
     const { userId } = await auth();
     if (!userId)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { id } = params;
+    const { id } = context.params;
 
     const updated = await prisma.application.updateMany({
       where: { id, userId },
