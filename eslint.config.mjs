@@ -1,14 +1,20 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig } from "eslint-define-config";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export default defineConfig({
+  // Extend Next.js and TypeScript recommended rules
+  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
+  // Ignore Prisma-generated files
+  ignores: ["src/generated/**"],
+
+  parserOptions: {
+    ecmaVersion: 2022,
+    sourceType: "module",
+  },
+
+  rules: {
+    // Your custom rules
+    "@typescript-eslint/no-explicit-any": "off", // turn off if you need to use 'any'
+    "@typescript-eslint/no-require-imports": "off", // allows Prisma-generated requires
+  },
 });
-
-const eslintConfig = [...compat.extends("next/core-web-vitals")];
-
-export default eslintConfig;
