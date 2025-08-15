@@ -6,7 +6,7 @@ export default function Home() {
     <main className="bg-gray-50 min-h-screen flex flex-col pt-16">
       <Nav />
       {/* Hero Section */}
-      <section className="bg-white py-20 px-6 md:px-12 lg:px-24 flex flex-col md:flex-row items-center">
+      <section className="bg-white py-20 px-6 md:px-12 lg:px-24 flex flex-col md:flex-row items-center justify-center max-w-6xl mx-auto">
         <div className="md:w-1/2 max-w-xl text-center">
           <h1 className="text-4xl font-extrabold text-indigo-600 mb-6">
             Track your job applications effortlessly with JobTrail
