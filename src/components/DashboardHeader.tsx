@@ -1,7 +1,6 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import Link from "next/link";
 
 const DashboardHeader = () => {
   const { user, isSignedIn } = useUser();
