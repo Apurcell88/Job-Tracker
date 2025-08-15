@@ -9,15 +9,6 @@ type CreateAppFormProps = {
   onCreate: (newApp: ApplicationCard) => void;
 };
 
-// type ApplicationCard = {
-//   id: string;
-//   company: string;
-//   position: string;
-//   status: Status;
-//   appliedDate: string;
-//   tags: string[];
-// };
-
 const CreateAppForm = ({ onCreate }: CreateAppFormProps) => {
   const [form, setForm] = useState({
     company: "",
