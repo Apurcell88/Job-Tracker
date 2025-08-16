@@ -31,8 +31,12 @@ export default function Home() {
         </div>
         <div className="md:w-1/2 mt-12 md:mt-0 flex justify-center">
           {/* Placeholder for image or screenshot */}
-          <div className="w-72 h-48 bg-indigo-100 rounded-lg shadow-lg flex items-center justify-center text-indigo-400 italic">
-            Dashboard Screenshot
+          <div className="flex items-center justify-center md:ml-6">
+            <img
+              src="images/job-trail.png"
+              alt="JobTrail dashboard preview"
+              className="max-w-full rounded-lg shadow-lg"
+            />
           </div>
         </div>
       </section>
