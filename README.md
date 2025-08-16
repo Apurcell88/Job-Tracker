@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+JobTrail – Job Application Tracker
 
-## Getting Started
+JobTrail is a full-stack job tracking application built with Next.js, Prisma, and PostgreSQL. It helps you organize your job search with features like application tracking, reminders, status updates, and analytics.
 
-First, run the development server:
+🚀 Features
 
-```bash
+Track Applications – Add job applications with details like position, company, status, and follow-up dates.
+
+Reminders – Get notified about interviews and follow-ups.
+
+Tags & Filters – Organize and search your applications easily.
+
+Visual Dashboard – View statistics for total applications, interviews, offers, and rejections.
+
+Authentication – Secure login with Email/Password, Google, or GitHub (NextAuth).
+
+Responsive UI – Built with Tailwind CSS for mobile-first design.
+
+🛠 Tech Stack
+
+Frontend:
+
+Next.js (App Router)
+
+Tailwind CSS
+
+shadcn/ui
+
+Backend:
+
+Prisma ORM
+
+PostgreSQL (Neon hosting)
+
+NextAuth.js for authentication
+
+Deployment:
+
+Vercel for hosting
+Neon for database
+
+Set up environment variables
+
+Create a .env file in the project root:
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your-clerk-publishable-key"
+CLERK_SECRET_KEY="your-clerk-secret-key"
+NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL="/"
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL="/"
+
+Set up the database
+npx prisma migrate dev
+npx prisma generate
+
+Start the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+🌐 Deployment Notes (Vercel + Prisma)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Vercel caches node_modules, so Prisma Client might be outdated during builds.
+To avoid this, update Vercel Build Settings:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Build Command:
 
-## Learn More
+npx prisma generate && next build
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Also, add this to package.json to regenerate Prisma Client automatically:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+"scripts": {
+  "postinstall": "prisma generate",
+  "build": "next build"
+}
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Ensure @prisma/client is in dependencies (not devDependencies).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+📜 License
+
+This project is licensed under the MIT License.
+
+👤 Author
+
+Adam Purcell – GitHub • LinkedIn
