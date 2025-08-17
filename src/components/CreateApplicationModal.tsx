@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ApplicationCard } from "../../types";
+import React from "react";
 
 const CreateApplicationModal = ({
   onClose,
