@@ -68,11 +68,12 @@ export async function POST(req: NextRequest) {
     let tagConnections: { id: string }[] = [];
     if (tags && Array.isArray(tags)) {
       tagConnections = await Promise.all(
-        tags.map(async (tag: string) => {
+        tags.map(async (tag: string | { name: string }) => {
+          const tagName = typeof tag === "string" ? tag : tag.name;
           return prisma.tag.upsert({
-            where: { name: tag },
+            where: { name: tagName },
             update: {},
-            create: { name: tag },
+            create: { name: tagName },
           });
         })
       );

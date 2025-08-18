@@ -10,6 +10,7 @@ import CreateApplicationModal from "./CreateApplicationModal";
 import InterviewModal from "./InterviewModal";
 import { ApplicationCard } from "../../types";
 import { Status } from "@/generated/prisma";
+import React from "react";
 
 const statusOptions: Status[] = [
   "APPLIED",
