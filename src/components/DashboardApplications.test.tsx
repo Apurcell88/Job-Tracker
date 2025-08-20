@@ -4,6 +4,7 @@ import DashboardApplications from "./DashboardApplications";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { Status } from "@/generated/prisma";
 import { vi } from "vitest";
+import { mutate } from "swr";
 
 test("fetches recent applications on mount", async () => {
   const mockData = {
@@ -216,4 +217,85 @@ test("change status to INTERVIEWING opens InterviewModal", async () => {
   await screen.findByTestId("cancel-btn");
 });
 
-test("confirming interview calls updateStatus and mutate", async () => {});
+test("confirming interview calls updateStatus and mutate", async () => {
+  const mockOnStatusChange = vi.fn();
+
+  vi.spyOn(global, "fetch").mockImplementation((url, options) => {
+    if (url.toString().includes("/api/applications/recent")) {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            total: 1,
+            recentApplications: [{ ...mockApp, status: "APPLIED" }],
+          }),
+      }) as any;
+    }
+
+    // Handle the PATCH request for the application
+    if (
+      url.toString().includes(`/api/applications/${mockApp.id}`) &&
+      options?.method === "PATCH"
+    ) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ...mockApp, status: "INTERVIEWING" }),
+      }) as any;
+    }
+
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({}),
+    }) as any;
+  });
+
+  render(<DashboardApplications onStatusChange={mockOnStatusChange} />);
+
+  await screen.findByText(/Acme/i);
+
+  const statusSelect = screen.getByDisplayValue("APPLIED") as HTMLSelectElement;
+  fireEvent.change(statusSelect, { target: { value: "INTERVIEWING" } });
+
+  // Confirm the interview
+  fireEvent.click(await screen.findByTestId("confirm-btn"));
+
+  await waitFor(() => {
+    expect(mockOnStatusChange).toHaveBeenCalled();
+    expect(mutate).toHaveBeenCalledWith("/api/interviews");
+  });
+});
+
+// ----------------------- handleEdit -----------------------------
+test("clicking edit sets the correct application as editingApp", async () => {
+  const mockOnStatusChange = vi.fn();
+
+  // Mock fetch for initial applications
+  vi.spyOn(global, "fetch").mockImplementation((url) => {
+    if (url.toString().includes("/api/applications/recent")) {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            total: 1,
+            recentApplications: [mockApp],
+          }),
+      }) as any;
+    }
+    return Promise.reject("Unknown URL");
+  });
+
+  render(<DashboardApplications onStatusChange={mockOnStatusChange} />);
+
+  // Wait for the application to appear
+  await screen.findByText(/Acme/i);
+
+  // Click the edit button
+  const editButton = screen.getByRole("button", { name: /edit/i });
+  fireEvent.click(editButton);
+
+  // Expect the editing form to appear
+  expect(screen.getByDisplayValue("Acme")).toBeInTheDocument();
+  expect(screen.getByDisplayValue("Developer")).toBeInTheDocument();
+});
+
+// ----------------------- handleSaveEdit -----------------------------

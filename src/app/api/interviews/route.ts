@@ -20,6 +20,7 @@ export async function GET() {
         interviewDate: {
           gte: today,
         },
+        NOT: [{ status: "REJECTED" }, { status: "ARCHIVED" }],
       },
       select: {
         id: true,

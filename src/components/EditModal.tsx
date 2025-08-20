@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ApplicationCard } from "../../types";
+import React from "react";
 
 type EditableApplication = Omit<ApplicationCard, "tags"> & {
   tags: { name: string }[];

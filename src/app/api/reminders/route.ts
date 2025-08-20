@@ -27,6 +27,7 @@ export async function GET() {
           gte: today,
           lte: nextWeek,
         },
+        status: { notIn: ["REJECTED", "ARCHIVED"] },
       },
       orderBy: { followUpDate: "asc" },
       select: {
