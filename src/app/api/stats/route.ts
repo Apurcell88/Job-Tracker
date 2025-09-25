@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       prisma.application.count({ where: { userId } }),
       prisma.application.count({ where: { userId, status: "INTERVIEWING" } }),
       prisma.application.count({ where: { userId, status: "OFFER" } }),
-      prisma.application.count({ where: { status: "REJECTED" } }),
+      prisma.application.count({ where: { userId, status: "REJECTED" } }),
     ]);
 
     return NextResponse.json({ total, interviews, offers, rejections });
