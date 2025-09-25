@@ -19,6 +19,10 @@ export async function GET() {
       position: true,
       status: true,
       appliedDate: true,
+      notes: true,
+      contactName: true,
+      contactPhone: true,
+      contactEmail: true,
       tags: true,
     },
   });
