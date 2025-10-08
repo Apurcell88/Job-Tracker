@@ -25,6 +25,7 @@ export async function GET() {
       status: true,
       appliedDate: true,
       notes: true,
+      jobUrl: true,
       contactName: true,
       contactPhone: true,
       contactEmail: true,
