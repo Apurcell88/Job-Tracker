@@ -11,6 +11,7 @@ type ApplicationCard = {
   contactName?: string;
   contactPhone?: string;
   contactEmail?: string;
+  jobUrl?: string;
 };
 
 type Props = {
@@ -36,6 +37,20 @@ const ViewModal = ({ application, onClose }: Props) => {
           <strong>Applied Date:</strong>{" "}
           {format(new Date(application.appliedDate), "MMM d, yyyy")}
         </p>
+
+        {application.jobUrl && (
+          <p>
+            <strong>Job URL:</strong>{" "}
+            <a
+              href={application.jobUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              View Posting
+            </a>
+          </p>
+        )}
 
         {application.notes && (
           <p>
