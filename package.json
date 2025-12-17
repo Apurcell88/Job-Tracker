@@ -26,7 +26,7 @@
     "date-fns": "^4.1.0",
     "eslint-define-config": "^2.1.0",
     "lucide-react": "^0.536.0",
-    "next": "15.4.4",
+    "next": "15.4.8",
     "next-auth": "^4.24.11",
     "prisma": "^6.12.0",
     "react": "19.1.0",
