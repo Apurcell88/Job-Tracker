@@ -15,6 +15,7 @@ async function main() {
     data: {
       name: "Demo User",
       email: "demo@example.com",
+      clerkId: "demo_clerk_user",
     },
   });
 
