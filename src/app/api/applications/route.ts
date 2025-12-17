@@ -1,27 +1,52 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@/generated/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
 const prisma = new PrismaClient();
+
+async function ensureDbUser(clerkUserId: string) {
+  const client = await clerkClient();
+  const clerkUser = await client.users.getUser(clerkUserId);
+
+  const email =
+    clerkUser.emailAddresses.find(
+      (e) => e.id === clerkUser.primaryEmailAddressId
+    )?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress;
+
+  if (!email) throw new Error("Clerk user has no email");
+
+  const name =
+    clerkUser.firstName || clerkUser.lastName
+      ? `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim()
+      : null;
+
+  // ✅ upsert by clerkId, not by id
+  return prisma.user.upsert({
+    where: { clerkId: clerkUserId },
+    update: { email, name },
+    create: {
+      clerkId: clerkUserId, // ✅ REQUIRED
+      email,
+      name,
+    },
+  });
+}
 
 // GET: Fetch all applications
 export async function GET() {
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+
+    const dbUser = await ensureDbUser(clerkUserId);
 
     const applications = await prisma.application.findMany({
-      where: { userId },
-      include: {
-        tags: true,
-      },
-      orderBy: {
-        appliedDate: "desc",
-      },
+      where: { userId: dbUser.id }, // ✅ DB user id
+      include: { tags: true },
+      orderBy: { appliedDate: "desc" },
     });
+
     return NextResponse.json(applications);
   } catch (err) {
     console.error("GET /api/applications error:", err);
@@ -35,10 +60,11 @@ export async function GET() {
 // POST: create a new application
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+
+    const dbUser = await ensureDbUser(clerkUserId);
 
     const body = await req.json();
     const {
@@ -81,7 +107,7 @@ export async function POST(req: NextRequest) {
 
     const newApp = await prisma.application.create({
       data: {
-        userId,
+        userId: dbUser.id,
         company,
         position,
         location,
