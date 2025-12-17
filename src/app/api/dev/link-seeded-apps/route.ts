@@ -17,6 +17,7 @@ export async function GET() {
     update: {},
     create: {
       id: userId,
+      clerkId: userId,
       email: user?.emailAddresses?.[0]?.emailAddress || "",
       name: user?.firstName || "",
     },
