@@ -20,15 +20,29 @@ async function ensureDbUser(clerkUserId: string) {
       ? `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim()
       : null;
 
-  // ✅ upsert by clerkId, not by id
-  return prisma.user.upsert({
+  // 1) If already linked by clerkId, just update fields
+  const existingByClerk = await prisma.user.findUnique({
     where: { clerkId: clerkUserId },
-    update: { email, name },
-    create: {
-      clerkId: clerkUserId, // ✅ REQUIRED
-      email,
-      name,
-    },
+  });
+  if (existingByClerk) {
+    return prisma.user.update({
+      where: { id: existingByClerk.id },
+      data: { email, name },
+    });
+  }
+
+  // 2) If email already exists, LINK it to this clerkId (prevents P2002)
+  const existingByEmail = await prisma.user.findUnique({ where: { email } });
+  if (existingByEmail) {
+    return prisma.user.update({
+      where: { id: existingByEmail.id },
+      data: { clerkId: clerkUserId, name },
+    });
+  }
+
+  // 3) Else create fresh
+  return prisma.user.create({
+    data: { clerkId: clerkUserId, email, name },
   });
 }
 
