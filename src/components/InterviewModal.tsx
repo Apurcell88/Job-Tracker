@@ -12,7 +12,9 @@ const InterviewModal = ({ onConfirm, onCancel }: Props) => {
 
   const handleSubmit = () => {
     if (!dateTime) return alert("Please select a date and time.");
-    onConfirm(dateTime);
+
+    const iso = new Date(dateTime).toISOString();
+    onConfirm(iso);
   };
 
   return (
