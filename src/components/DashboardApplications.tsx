@@ -31,12 +31,24 @@ type EditableApplication = Omit<ApplicationCard, "tags"> & {
 
 type Props = {
   onStatusChange: () => void;
+  initialApplications?: ApplicationCard[];
+  initialTotal?: number;
+  readOnly?: boolean;
 };
 
-const DashboardApplications = ({ onStatusChange }: Props) => {
-  const [applications, setApplications] = useState<ApplicationCard[]>([]);
+const DashboardApplications = ({
+  onStatusChange,
+  initialApplications,
+  initialTotal,
+  readOnly = false,
+}: Props) => {
+  const [applications, setApplications] = useState<ApplicationCard[]>(
+    initialApplications ?? []
+  );
   const [showAll, setShowAll] = useState(false);
-  const [totalApplications, setTotalApplications] = useState(0);
+  const [totalApplications, setTotalApplications] = useState(
+    initialTotal ?? initialApplications?.length ?? 0
+  );
   const [selectedApp, setSelectedApp] = useState<ApplicationCard | null>(null);
   const [editingApp, setEditingApp] = useState<ApplicationCard | null>(null);
   const [showCreateApp, setShowCreateApp] = useState(false);
@@ -45,6 +57,12 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
   const [pendingAppId, setPendingAppId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (initialApplications) {
+      setApplications(initialApplications);
+      setTotalApplications(initialTotal ?? initialApplications.length);
+      return;
+    }
+
     const fetchApplications = async () => {
       const res = await fetch("/api/applications/recent");
       const data: ApiResponse = await res.json();
@@ -53,7 +71,7 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
     };
 
     fetchApplications();
-  }, []);
+  }, [initialApplications, initialTotal]);
 
   const normalizedApplications = Array.isArray(applications)
     ? applications
@@ -97,11 +115,8 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
     setShowAll(!showAll);
   };
 
-  useEffect(() => {
-    fetchRecentApplications();
-  }, []);
-
   const handleEdit = (app: ApplicationCard) => {
+    if (readOnly) return;
     setEditingApp(app);
   };
 
@@ -134,6 +149,8 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
   };
 
   const handleDelete = async (id: string, status: Status) => {
+    if (readOnly) return;
+
     const confirmDelete = confirm(
       "Are you sure you want to delete this application?"
     );
@@ -186,6 +203,8 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
     interviewDate?: string,
     followUpDate?: string
   ) => {
+    if (readOnly) return;
+
     try {
       const res = await fetch(`/api/applications/${applicationId}/status`, {
         method: "PATCH",
@@ -231,6 +250,8 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
     applicationId: string,
     newStatus: Status
   ) => {
+    if (readOnly) return;
+
     if (!applicationId || !newStatus) {
       console.error("Missing applicationId or newStatus");
       return;
@@ -280,12 +301,14 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
     <div className="bg-white rounded-xl shadow p-6 mt-6">
       <h3 className="text-xl font-semibold mb-4">Recent Applications</h3>
       <div className="overflow-x-auto">
-        <button
-          onClick={() => setShowCreateApp(true)}
-          className="mb-4 text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded cursor-pointer"
-        >
-          + Add Application
-        </button>
+        {!readOnly && (
+          <button
+            onClick={() => setShowCreateApp(true)}
+            className="mb-4 text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded cursor-pointer"
+          >
+            + Add Application
+          </button>
+        )}
         <div className="mb-4 flex flex-wrap gap-2">
           <span className="font-medium text-gray-700">Filter by Tag:</span>
           {allTags.map((tag) => (
@@ -328,19 +351,25 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
                 <td className="py-2 pr-4">{app.company}</td>
                 <td className="py-2 pr-4">{app.position}</td>
                 <td className="py-2 pr-4">
-                  <select
-                    value={app.status}
-                    onChange={(e) =>
-                      handleStatusChange(app.id, e.target.value as Status)
-                    }
-                    className="border rounded px-2 py-1 text-sm"
-                  >
-                    {statusOptions.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
+                  {readOnly ? (
+                    <span className="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                      {app.status}
+                    </span>
+                  ) : (
+                    <select
+                      value={app.status}
+                      onChange={(e) =>
+                        handleStatusChange(app.id, e.target.value as Status)
+                      }
+                      className="border rounded px-2 py-1 text-sm"
+                    >
+                      {statusOptions.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </td>
                 <td className="py-2 pr-4">
                   {format(new Date(app.appliedDate), "MMM d, yyyy")}
@@ -364,18 +393,22 @@ const DashboardApplications = ({ onStatusChange }: Props) => {
                   >
                     View
                   </button>
-                  <button
-                    className="text-indigo-600 hover:underline text-sm"
-                    onClick={() => handleEdit(app)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="text-red-600 hover:underline text-sm"
-                    onClick={() => handleDelete(app.id, app.status)}
-                  >
-                    Delete
-                  </button>
+                  {!readOnly && (
+                    <>
+                      <button
+                        className="text-indigo-600 hover:underline text-sm"
+                        onClick={() => handleEdit(app)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="text-red-600 hover:underline text-sm"
+                        onClick={() => handleDelete(app.id, app.status)}
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}

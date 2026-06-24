@@ -22,6 +22,12 @@ export default function Home() {
               Get Started Free
             </a>
             <a
+              href="/dashboard/preview"
+              className="px-6 py-3 border border-indigo-600 text-indigo-600 rounded-md font-semibold hover:bg-indigo-50 transition"
+            >
+              View Demo
+            </a>
+            <a
               href="/features"
               className="px-6 py-3 border border-teal-500 text-teal-500 rounded-md font-semibold hover:bg-teal-50 transition"
             >
@@ -56,10 +62,10 @@ export default function Home() {
           applications.
         </p>
         <a
-          href="/dashboard"
+          href="/dashboard/preview"
           className="inline-block bg-white text-indigo-600 px-8 py-3 rounded-md font-semibold hover:bg-gray-100 transition"
         >
-          Get Started Free
+          Preview the Dashboard
         </a>
       </section>
 

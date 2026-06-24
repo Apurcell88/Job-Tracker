@@ -11,6 +11,11 @@ export type ApplicationCard = {
   position: string;
   status: Status;
   appliedDate: string;
+  notes?: string;
+  jobUrl?: string;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
   tags: Tag[];
 };
 

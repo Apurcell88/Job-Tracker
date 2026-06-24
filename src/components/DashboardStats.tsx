@@ -12,13 +12,19 @@ type Stats = {
 
 type Props = {
   refreshKey: number;
+  statsOverride?: Stats;
 };
 
-const DashboardStats = ({ refreshKey }: Props) => {
+const DashboardStats = ({ refreshKey, statsOverride }: Props) => {
   const { user } = useUser();
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<Stats | null>(statsOverride ?? null);
 
   useEffect(() => {
+    if (statsOverride) {
+      setStats(statsOverride);
+      return;
+    }
+
     const fetchStats = async () => {
       if (!user?.id) return;
 
@@ -30,7 +36,7 @@ const DashboardStats = ({ refreshKey }: Props) => {
     };
 
     fetchStats();
-  }, [user, refreshKey]);
+  }, [user, refreshKey, statsOverride]);
 
   if (!stats) return null;
 

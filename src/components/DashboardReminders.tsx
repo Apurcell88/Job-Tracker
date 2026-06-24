@@ -20,18 +20,26 @@ type Interview = {
 
 type Props = {
   refreshKey: number;
+  remindersOverride?: { upcoming: Reminder[]; overdue: Reminder[] };
+  interviewsOverride?: Interview[];
+  readOnly?: boolean;
 };
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-const DashboardReminders = ({ refreshKey }: Props) => {
+const DashboardReminders = ({
+  refreshKey,
+  remindersOverride,
+  interviewsOverride,
+  readOnly = false,
+}: Props) => {
   const {
     data,
     error: remindersError,
     isLoading: remindersLoading,
     mutate: refetchReminders,
   } = useSWR<{ upcoming: Reminder[]; overdue: Reminder[] }>(
-    "/api/reminders",
+    readOnly ? null : "/api/reminders",
     fetcher,
     {
       revalidateOnFocus: true,
@@ -42,8 +50,7 @@ const DashboardReminders = ({ refreshKey }: Props) => {
     data: interviews,
     error: interviewsError,
     isLoading: interviewsLoading,
-    mutate: refetchInterviews,
-  } = useSWR<Interview[]>("/api/interviews", fetcher, {
+  } = useSWR<Interview[]>(readOnly ? null : "/api/interviews", fetcher, {
     // refreshInterval: 60000, // optional
     revalidateOnFocus: true,
   });
@@ -51,14 +58,21 @@ const DashboardReminders = ({ refreshKey }: Props) => {
   const [showAlerts, setShowAlerts] = useState(false);
 
   useEffect(() => {
+    if (readOnly) {
+      setShowAlerts(true);
+      return;
+    }
+
     refetchReminders();
     setShowAlerts(true);
-  }, [refreshKey, refetchReminders]);
+  }, [refreshKey, refetchReminders, readOnly]);
 
-  if (remindersLoading || interviewsLoading) return <div>Loading...</div>;
+  if (!readOnly && (remindersLoading || interviewsLoading))
+    return <div>Loading...</div>;
   if (remindersError || interviewsError) return <div>Error loading data.</div>;
 
-  const { upcoming = [], overdue = [] } = data || {};
+  const { upcoming = [], overdue = [] } = remindersOverride || data || {};
+  const displayInterviews = interviewsOverride || interviews || [];
 
   // Calculate today's range for interviews today
   const today = new Date();
@@ -74,7 +88,7 @@ const DashboardReminders = ({ refreshKey }: Props) => {
 
   // Interviews happening today
   const interviewsToday =
-    interviews?.filter((interview) => {
+    displayInterviews.filter((interview) => {
       const interviewDate = new Date(interview.interviewDate);
       return interviewDate >= today && interviewDate < tomorrow;
     }) || [];
@@ -182,12 +196,14 @@ const DashboardReminders = ({ refreshKey }: Props) => {
                       ? followDate.toLocaleDateString()
                       : "No follow-up date"}
                   </div>
-                  <button
-                    onClick={() => markComplete(app.id)}
-                    className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                  >
-                    Mark as Complete
-                  </button>
+                  {!readOnly && (
+                    <button
+                      onClick={() => markComplete(app.id)}
+                      className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                    >
+                      Mark as Complete
+                    </button>
+                  )}
                 </li>
               );
             })}
@@ -216,12 +232,14 @@ const DashboardReminders = ({ refreshKey }: Props) => {
                   Follow up was due on:{" "}
                   {new Date(app.followUpDate).toLocaleDateString()}
                 </div>
-                <button
-                  onClick={() => markComplete(app.id)}
-                  className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-                >
-                  Mark as Complete
-                </button>
+                {!readOnly && (
+                  <button
+                    onClick={() => markComplete(app.id)}
+                    className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                  >
+                    Mark as Complete
+                  </button>
+                )}
               </li>
             ))}
           </ul>
@@ -229,13 +247,13 @@ const DashboardReminders = ({ refreshKey }: Props) => {
       )}
 
       {/* Interview Reminders */}
-      {interviews?.length === 0 ? (
+      {displayInterviews.length === 0 ? (
         <p className="text-sm text-gray-500">No upcoming interviews.</p>
       ) : (
         <div>
           <h3 className="text-md font-medium mb-2">Interviews</h3>
           <ul className="space-y-2">
-            {interviews?.map((interview) => {
+            {displayInterviews.map((interview) => {
               const date = new Date(interview.interviewDate);
               const isValidDate = !isNaN(date.getTime());
 
